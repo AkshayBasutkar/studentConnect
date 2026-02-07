@@ -238,6 +238,14 @@ export async function registerRoutes(
     res.json(students);
   });
 
+  app.get(api.users.all.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (user.role !== 'admin') return res.sendStatus(403);
+    const users = await storage.getAllUsers();
+    res.json(users);
+  });
+
   app.get(api.notifications.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const user = req.user as any;

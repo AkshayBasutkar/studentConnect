@@ -182,6 +182,13 @@ export const api = {
         200: z.array(z.custom<typeof students.$inferSelect & { user: typeof users.$inferSelect }>()),
       },
     },
+    all: {
+      method: 'GET' as const,
+      path: '/api/admin/users' as const,
+      responses: {
+        200: z.array(z.custom<typeof users.$inferSelect>()),
+      },
+    },
   },
   notifications: {
     list: {
