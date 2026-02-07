@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useUsers } from "@/hooks/use-users";
+import type { User } from "@shared/schema";
 import { 
   Search, 
-  User, 
+  User as UserIcon, 
   Mail, 
   Phone,
   Shield,
@@ -105,7 +106,7 @@ export default function ManageUsersPage() {
             </div>
           ) : filteredUsers?.length === 0 ? (
             <div className="text-center py-12 bg-muted/20 rounded-lg border border-dashed">
-              <User className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
+              <UserIcon className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
               <h3 className="mt-4 text-lg font-medium">No users found</h3>
               <p className="text-muted-foreground">Try adjusting your filters or search query.</p>
             </div>
@@ -191,7 +192,7 @@ function RoleBadge({ role }: { role: string }) {
       className: "bg-blue-500 hover:bg-blue-600" 
     },
     proctor: { 
-      icon: User, 
+      icon: UserIcon, 
       className: "bg-purple-500 hover:bg-purple-600" 
     },
     admin: { 

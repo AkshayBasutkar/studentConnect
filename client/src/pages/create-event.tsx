@@ -10,6 +10,16 @@ import {
   ArrowLeft,
   Loader2
 } from "lucide-react";
+
+interface UploadResult {
+  successful: Array<{
+    name: string;
+    uploadURL: string;
+    type: string;
+    size: number;
+  }>;
+}
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -81,7 +91,7 @@ export default function CreateEventPage() {
     });
   };
 
-  const handleUploadComplete = (result: any) => {
+  const handleUploadComplete = (result: UploadResult) => {
     if (result.successful.length > 0) {
       const file = result.successful[0];
       setUploadedBanner(file.uploadURL);

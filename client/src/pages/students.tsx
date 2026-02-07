@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useStudents } from "@/hooks/use-students";
+import type { StudentWithUser } from "@shared/schema";
 import { 
   Search, 
   User, 
@@ -105,7 +106,7 @@ export default function StudentsPage() {
   );
 }
 
-function StudentCard({ student }: { student: any }) {
+function StudentCard({ student }: { student: StudentWithUser }) {
   return (
     <Card className="hover:shadow-lg transition-all duration-300 border border-border/60">
       <CardHeader className="pb-3">
