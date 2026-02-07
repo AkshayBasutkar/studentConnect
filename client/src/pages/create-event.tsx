@@ -72,12 +72,24 @@ export default function CreateEventPage() {
       return;
     }
 
+    // Validate date range
+    const start = new Date(formData.startDate);
+    const end = new Date(formData.endDate);
+    if (end <= start) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Date Range",
+        description: "End date must be after start date.",
+      });
+      return;
+    }
+
     createEvent.mutate({
       title: formData.title,
       description: formData.description,
       category: formData.category,
-      startDate: new Date(formData.startDate),
-      endDate: new Date(formData.endDate),
+      startDate: start,
+      endDate: end,
       venue: formData.venue,
       bannerUrl: uploadedBanner || undefined,
     }, {
