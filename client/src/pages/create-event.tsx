@@ -92,6 +92,8 @@ export default function CreateEventPage() {
       endDate: end,
       venue: formData.venue,
       bannerUrl: uploadedBanner || undefined,
+      isPinned: false,
+      isActive: true,
     }, {
       onSuccess: () => {
         toast({

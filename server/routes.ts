@@ -246,6 +246,61 @@ export async function registerRoutes(
     res.json(users);
   });
 
+  app.post(api.users.create.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (user.role !== 'admin') return res.sendStatus(403);
+
+    try {
+      const input = api.users.create.input.parse(req.body);
+      const hashedPassword = await hashPassword(input.password);
+      const newUser = await storage.createUser({
+        ...input,
+        password: hashedPassword,
+      });
+      res.status(201).json(newUser);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      throw err;
+    }
+  });
+
+  app.post(api.users.createStudent.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (user.role !== 'admin') return res.sendStatus(403);
+
+    try {
+      const input = api.users.createStudent.input.parse(req.body);
+      const student = await storage.createStudent(input);
+      res.status(201).json(student);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      throw err;
+    }
+  });
+
+  app.post(api.users.createProctor.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (user.role !== 'admin') return res.sendStatus(403);
+
+    try {
+      const input = api.users.createProctor.input.parse(req.body);
+      const proctor = await storage.createProctor(input);
+      res.status(201).json(proctor);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      throw err;
+    }
+  });
+
   app.get(api.notifications.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const user = req.user as any;

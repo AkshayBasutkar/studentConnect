@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,15 +24,40 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { api } from "@shared/routes";
+import { AdminWelcomeDialog } from "@/components/admin-welcome-dialog";
 
 const formSchema = api.auth.login.input;
 
 export default function LoginPage() {
   const { login, isLoggingIn, user } = useAuth();
   const [, setLocation] = useLocation();
+  const [showAdminDialog, setShowAdminDialog] = useState(false);
+  const [adminName, setAdminName] = useState("");
 
-  if (user) {
+  useEffect(() => {
+    if (user) {
+      // Check if user just logged in as admin
+      if (user.role === 'admin') {
+        const hasSeenDialog = sessionStorage.getItem('adminWelcomeShown');
+        if (!hasSeenDialog) {
+          setAdminName(user.firstName);
+          setShowAdminDialog(true);
+          sessionStorage.setItem('adminWelcomeShown', 'true');
+        } else {
+          setLocation("/");
+        }
+      } else {
+        setLocation("/");
+      }
+    }
+  }, [user, setLocation]);
+
+  const handleAdminDialogClose = () => {
+    setShowAdminDialog(false);
     setLocation("/");
+  };
+
+  if (user && !showAdminDialog) {
     return null;
   }
 
@@ -50,6 +75,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
+      <AdminWelcomeDialog 
+        isOpen={showAdminDialog} 
+        onClose={handleAdminDialogClose}
+        userName={adminName}
+      />
       {/* Left Side - Visual */}
       <div className="hidden md:flex flex-col justify-between bg-primary p-10 text-primary-foreground relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-indigo-900/90 mix-blend-multiply" />
