@@ -11,6 +11,9 @@ import { Loader2 } from "lucide-react";
 import LoginPage from "@/pages/login";
 import DashboardPage from "@/pages/dashboard";
 import EventsPage from "@/pages/events";
+import CreateEventPage from "@/pages/create-event";
+import StudentsPage from "@/pages/students";
+import ManageUsersPage from "@/pages/manage-users";
 import CreateParticipationPage from "@/pages/create-participation";
 import ReviewParticipationsPage from "@/pages/review-participations";
 import NotFound from "@/pages/not-found";
@@ -55,6 +58,20 @@ function Router() {
 
       <Route path="/events">
         <ProtectedRoute component={EventsPage} />
+      </Route>
+
+      {/* Proctor Routes */}
+      <Route path="/events/create">
+        <ProtectedRoute component={CreateEventPage} allowedRoles={['proctor', 'admin']} />
+      </Route>
+
+      <Route path="/students">
+        <ProtectedRoute component={StudentsPage} allowedRoles={['proctor', 'admin']} />
+      </Route>
+
+      {/* Admin Routes */}
+      <Route path="/admin/users">
+        <ProtectedRoute component={ManageUsersPage} allowedRoles={['admin']} />
       </Route>
 
       {/* Student Routes */}
