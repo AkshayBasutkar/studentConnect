@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { useCreateEvent } from "@/hooks/use-events";
-import { useLocation } from "wouter";
+import { useEvent } from "@/hooks/use-events";
 import { useUpload } from "@/hooks/use-upload";
 import { ObjectUploader } from "@/components/ObjectUploader";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@shared/routes";
 import { 
   Calendar, 
   MapPin, 
@@ -30,13 +32,16 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Switch } from "@/components/ui/switch";
 
-export default function CreateEventPage() {
+export default function EditEventPage() {
+  const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { user } = useAuth();
-  const createEvent = useCreateEvent();
-  const { getUploadParameters } = useUpload();
+  const { data: event, isLoading } = useEvent(Number(params.id));
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { getUploadParameters } = useUpload();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -46,9 +51,57 @@ export default function CreateEventPage() {
     endDate: "",
     venue: "",
     bannerUrl: "",
+    isPinned: false,
+    isActive: true,
   });
 
   const [uploadedBanner, setUploadedBanner] = useState<string>("");
+
+  useEffect(() => {
+    if (event) {
+      setFormData({
+        title: event.title,
+        description: event.description,
+        category: event.category,
+        startDate: new Date(event.startDate).toISOString().slice(0, 16),
+        endDate: new Date(event.endDate).toISOString().slice(0, 16),
+        venue: event.venue,
+        bannerUrl: event.bannerUrl || "",
+        isPinned: event.isPinned,
+        isActive: event.isActive,
+      });
+      setUploadedBanner(event.bannerUrl || "");
+    }
+  }, [event]);
+
+  const updateEvent = useMutation({
+    mutationFn: async (eventData: any) => {
+      const res = await fetch(`/api/events/${params.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(eventData),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to update event");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.events.list.path] });
+      queryClient.invalidateQueries({ queryKey: [api.events.get.path, Number(params.id)] });
+      toast({
+        title: "Event updated",
+        description: "The event has been successfully updated.",
+      });
+      setLocation(`/events/${params.id}`);
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Failed to update event",
+        description: error.message,
+      });
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +128,7 @@ export default function CreateEventPage() {
       return;
     }
 
-    createEvent.mutate({
+    updateEvent.mutate({
       title: formData.title,
       description: formData.description,
       category: formData.category,
@@ -83,16 +136,8 @@ export default function CreateEventPage() {
       endDate: end,
       venue: formData.venue,
       bannerUrl: uploadedBanner || undefined,
-      isPinned: false,
-      isActive: true,
-    }, {
-      onSuccess: () => {
-        toast({
-          title: "Event Created",
-          description: "Your event has been posted successfully.",
-        });
-        setLocation("/events");
-      }
+      isPinned: formData.isPinned,
+      isActive: formData.isActive,
     });
   };
 
@@ -107,26 +152,48 @@ export default function CreateEventPage() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!event) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <Card className="p-12 text-center">
+          <h2 className="text-2xl font-bold mb-2">Event Not Found</h2>
+          <p className="text-muted-foreground mb-6">
+            The event you're trying to edit doesn't exist.
+          </p>
+          <Button onClick={() => setLocation("/events")}>Back to Events</Button>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button 
           variant="ghost" 
           size="icon"
-          onClick={() => setLocation("/events")}
+          onClick={() => setLocation(`/events/${params.id}`)}
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>
-          <h1 className="text-3xl font-display font-bold">Post New Event</h1>
-          <p className="text-muted-foreground">Create and publish a new campus event.</p>
+          <h1 className="text-3xl font-display font-bold">Edit Event</h1>
+          <p className="text-muted-foreground">Update event information.</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Event Details</CardTitle>
-          <CardDescription>Fill in the information about the event you want to post.</CardDescription>
+          <CardDescription>Update the information about the event.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -223,6 +290,26 @@ export default function CreateEventPage() {
               </div>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="isPinned"
+                  checked={formData.isPinned}
+                  onCheckedChange={(checked) => setFormData({ ...formData, isPinned: checked })}
+                />
+                <Label htmlFor="isPinned" className="cursor-pointer">Pin this event</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="isActive"
+                  checked={formData.isActive}
+                  onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+                />
+                <Label htmlFor="isActive" className="cursor-pointer">Event is active</Label>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label>Event Banner (Optional)</Label>
               <ObjectUploader
@@ -251,16 +338,16 @@ export default function CreateEventPage() {
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => setLocation("/events")}
+                onClick={() => setLocation(`/events/${params.id}`)}
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
-                disabled={createEvent.isPending}
+                disabled={updateEvent.isPending}
               >
-                {createEvent.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Post Event
+                {updateEvent.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Update Event
               </Button>
             </div>
           </form>

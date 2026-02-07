@@ -11,6 +11,8 @@ import { Loader2 } from "lucide-react";
 import LoginPage from "@/pages/login";
 import DashboardPage from "@/pages/dashboard";
 import EventsPage from "@/pages/events";
+import EventDetailPage from "@/pages/event-detail";
+import EditEventPage from "@/pages/edit-event";
 import CreateEventPage from "@/pages/create-event";
 import StudentsPage from "@/pages/students";
 import ManageUsersPage from "@/pages/manage-users";
@@ -60,9 +62,17 @@ function Router() {
         <ProtectedRoute component={EventsPage} />
       </Route>
 
+      <Route path="/events/:id">
+        <ProtectedRoute component={EventDetailPage} />
+      </Route>
+
       {/* Proctor Routes */}
       <Route path="/events/create">
         <ProtectedRoute component={CreateEventPage} allowedRoles={['proctor', 'admin']} />
+      </Route>
+
+      <Route path="/events/:id/edit">
+        <ProtectedRoute component={EditEventPage} allowedRoles={['proctor', 'admin']} />
       </Route>
 
       <Route path="/students">

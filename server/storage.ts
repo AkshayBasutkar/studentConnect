@@ -142,7 +142,7 @@ export class DatabaseStorage implements IStorage {
     return event;
   }
 
-  async createEvent(insertEvent: InsertEvent): Promise<Event> {
+  async createEvent(insertEvent: InsertEvent & { postedBy: number }): Promise<Event> {
     const [event] = await db.insert(events).values(insertEvent).returning();
     return event;
   }
@@ -157,7 +157,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Participations
-  async createParticipation(participation: InsertParticipation, proofs: { fileName: string, fileUrl: string, fileType: string, fileSize: number }[]): Promise<Participation> {
+  async createParticipation(participation: InsertParticipation & { studentId: number }, proofs: { fileName: string, fileUrl: string, fileType: string, fileSize: number }[]): Promise<Participation> {
     return await db.transaction(async (tx) => {
       const [newParticipation] = await tx.insert(participations).values(participation).returning();
       
@@ -177,7 +177,7 @@ export class DatabaseStorage implements IStorage {
   async getParticipations(filters?: { studentId?: number, status?: string }): Promise<(Participation & { event: Event | null, proofs: ParticipationProof[] })[]> {
     let conditions = [];
     if (filters?.studentId) conditions.push(eq(participations.studentId, filters.studentId));
-    if (filters?.status) conditions.push(eq(participations.status, filters.status));
+    if (filters?.status) conditions.push(eq(participations.status, filters.status as "pending" | "approved" | "rejected"));
 
     const result = await db.select().from(participations)
       .leftJoin(events, eq(participations.eventId, events.id))

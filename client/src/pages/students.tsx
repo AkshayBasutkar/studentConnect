@@ -112,7 +112,7 @@ function StudentCard({ student }: { student: StudentWithUser }) {
       <CardHeader className="pb-3">
         <div className="flex items-center gap-3">
           <Avatar className="h-12 w-12 border-2 border-primary/10">
-            <AvatarImage src={student.profilePhotoUrl} />
+            <AvatarImage src={student.profilePhotoUrl || undefined} />
             <AvatarFallback className="bg-primary/10 text-primary font-bold">
               {student.user.firstName[0]}{student.user.lastName[0]}
             </AvatarFallback>

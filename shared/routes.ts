@@ -3,6 +3,8 @@ import {
   insertUserSchema, 
   insertEventSchema, 
   insertParticipationSchema,
+  insertStudentSchema,
+  insertProctorSchema,
   users,
   events,
   participations,
@@ -187,6 +189,33 @@ export const api = {
       path: '/api/admin/users' as const,
       responses: {
         200: z.array(z.custom<typeof users.$inferSelect>()),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/admin/users' as const,
+      input: insertUserSchema,
+      responses: {
+        201: z.custom<typeof users.$inferSelect>(),
+        403: errorSchemas.unauthorized,
+      },
+    },
+    createStudent: {
+      method: 'POST' as const,
+      path: '/api/admin/students' as const,
+      input: insertStudentSchema,
+      responses: {
+        201: z.custom<typeof students.$inferSelect>(),
+        403: errorSchemas.unauthorized,
+      },
+    },
+    createProctor: {
+      method: 'POST' as const,
+      path: '/api/admin/proctors' as const,
+      input: insertProctorSchema,
+      responses: {
+        201: z.custom<typeof proctors.$inferSelect>(),
+        403: errorSchemas.unauthorized,
       },
     },
   },

@@ -36,6 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { CreateUserDialog } from "@/components/create-user-dialog";
 
 export default function ManageUsersPage() {
   const [search, setSearch] = useState("");
@@ -56,9 +57,12 @@ export default function ManageUsersPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-display font-bold text-foreground">Manage Users</h1>
-        <p className="text-muted-foreground mt-1">View and manage all system users.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-display font-bold text-foreground">Manage Users</h1>
+          <p className="text-muted-foreground mt-1">View and manage all system users.</p>
+        </div>
+        <CreateUserDialog />
       </div>
 
       {/* Filters Bar */}
