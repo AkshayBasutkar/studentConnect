@@ -1,0 +1,220 @@
+Student-Proctor Participation Management System
+📋 PROJECT OVERVIEW
+A web platform to digitize student participation certificate submissions. Students upload certificates with proofs, proctors review and approve/reject, admins manage the entire system with analytics.
+
+👥 USER ROLES
+STUDENT
+
+Browse events (Twitter-style feed with filters)
+Submit participations (event selection, details, file upload)
+Track status (dashboard with charts)
+
+PROCTOR
+
+Post events (rich editor, banner upload, notifications)
+Review submissions (split view: student list sidebar + detail panel)
+Manage students (view, add, reassign)
+View event attendance/statistics
+
+ADMIN
+
+Full CRUD on users/events
+System analytics dashboard (KPIs, charts, trends)
+Generate/schedule reports (PDF/Excel)
+System settings (email, storage, categories, backups)
+
+
+🏗️ TECH STACK
+Frontend: React/Next.js + Tailwind CSS + Shadcn/ui
+Backend: Node.js/Express or Django
+Database: PostgreSQL (see schema below)
+Storage: AWS S3 or local with multer
+Auth: JWT tokens (access + refresh)
+Email: SendGrid/Nodemailer
+
+💾 DATABASE SCHEMA
+sqlusers (id, email, password_hash, role, first_name, last_name, phone, is_active)
+students (id, user_id, usn, department, year, semester, batch, proctor_id, profile_photo_url)
+proctors (id, user_id, employee_id, department, designation)
+events (id, title, description, category, start_date, end_date, venue, posted_by, is_pinned, is_active, banner_url)
+participations (id, student_id, event_id, event_name, role, duration_days, achievement, description, status, submitted_at, reviewed_by, proctor_feedback)
+participation_proofs (id, participation_id, file_name, file_url, file_type, file_size)
+notifications (id, user_id, title, message, type, is_read, related_entity_id)
+audit_logs (id, user_id, action, entity_type, entity_id, details, ip_address)
+Relationships: User→Student/Proctor (1:1), Proctor→Students (1:N), Student→Participations (1:N), Event→Participations (1:N), Participation→Proofs (1:N)
+
+🎨 KEY UI PAGES
+STUDENT
+1. Events Feed
+
+Left sidebar: Filters (category, date range, department)
+Main: Twitter-style infinite scroll cards (image, title, date, venue, description preview)
+Pinned events at top
+Search bar, filter tabs (All/Upcoming/Past)
+
+2. Submit Participation (3-step form)
+
+Step 1: Select event (dropdown with search) OR enter manually
+Step 2: Details (role, dates, achievement, description)
+Step 3: Upload proofs (drag-drop, max 10 files, 50MB each)
+Progress indicator, validation, save draft
+
+3. Dashboard
+
+KPI cards: Total/Pending/Approved/Rejected
+Charts: Participation trends (6 months), category breakdown
+Recent activity feed (last 5 status updates)
+Participations table (sortable, filterable, searchable)
+
+PROCTOR
+1. Post Event
+
+Form: Title, category, dates, venue, description (rich text editor), banner upload
+Eligibility filters (year, department)
+Options: Pin to feed, send notifications
+Preview before publish
+
+2. Student Review (Split View)
+
+Left Sidebar: Student list (name+USN), search/filter, scroll independently
+Main Panel:
+
+Top: Student profile (photo, contact, stats)
+Below: Collapsible participation cards
+Click card → Full detail modal with file viewer (images in lightbox, PDFs inline, videos embedded)
+Approve/Reject with feedback
+
+
+
+3. Events Management
+
+Collapsible event cards
+Expanded: Stats (registered, submitted, approved, rejected), participant table with filters
+Actions: Edit, Pin, Delete, Export attendance
+
+4. Review Queue
+
+Priority sections: Overdue (red) / Recent (orange) / New (green)
+Quick preview expandable cards
+Bulk approve with templates
+
+ADMIN
+1. Dashboard
+
+KPI cards with trends (students, proctors, events, participations)
+Charts: Line (trends), Donut (categories), Bar (departments)
+Top performers list, activity feed
+Quick action buttons
+
+2. User Management
+
+Tabs: Students / Proctors
+Table with filters, search, sort
+Actions dropdown: Edit, View, Reassign, Reset Password, Delete
+CSV import/export with validation
+Bulk operations (delete, reassign)
+
+3. Reports
+
+Report types: Participation Summary, Student Performance, Proctor Activity, Event Stats
+Filters: Date range, department, year, category
+Generate preview with charts
+Export: PDF/Excel, Email, Print
+Schedule recurring reports (weekly/monthly)
+
+4. Settings
+
+Collapsible sections: General, Email, Upload, Categories, Audit Logs, Backup
+SMTP config, email templates (with variables)
+File upload limits, allowed types, storage backend (Local/S3)
+Category/role management
+Audit log viewer, export
+Manual/scheduled backups, restore from backup
+
+
+🔐 AUTHENTICATION
+Login: Email/USN + password, remember me, rate limiting (5 attempts)
+Forgot Password: Email reset link (1-hour expiry)
+Session: JWT access token (1 hour) + refresh token (7 days), httpOnly cookies
+RBAC: Middleware checks role on all routes, 403 for unauthorized
+
+🔔 NOTIFICATIONS
+In-App: Bell icon with badge, dropdown (last 10), real-time via WebSocket/polling
+Email: Event posted, submission approved/rejected, password reset, weekly digests
+Types: New event (students), new submission (proctors), overdue reviews, system alerts (admins)
+
+📱 RESPONSIVE DESIGN
+Mobile (<768px): Hamburger menu, bottom nav bar, tables→cards, full-screen modals
+Tablet (768-1024px): Narrower sidebar, two-column dashboards
+Desktop (>1024px): Full sidebar, multi-column layouts
+Accessibility: Semantic HTML, ARIA labels, keyboard nav, WCAG AA contrast
+
+🔒 SECURITY
+
+HTTPS/TLS encryption
+Password hashing (bcrypt, 10 rounds)
+Input sanitization (SQL injection, XSS prevention)
+CSRF tokens on forms
+File validation (type, size, virus scan with ClamAV)
+Rate limiting on auth endpoints
+Session timeout (30 min inactivity)
+
+
+🚀 DEPLOYMENT
+Docker Compose:
+yamlservices:
+  web:
+    build: .
+    ports: ["3000:3000"]
+    env_file: .env
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: participation_db
+```
+
+**CI/CD:** GitHub Actions → Run tests → Deploy to staging → Manual approval → Deploy to production  
+**Monitoring:** Sentry (errors), Uptime monitoring  
+**Backups:** Daily at 3 AM, keep 30 backups, store on S3
+
+---
+
+## **📊 API EXAMPLES**
+```
+GET  /api/student/events?page=1&category=Technical
+POST /api/student/participations (body: eventId, role, dates, description, proofs)
+GET  /api/proctor/students/:id/participations
+PUT  /api/proctor/participations/:id/approve (body: feedback)
+GET  /api/admin/dashboard/stats
+POST /api/admin/users/students (body: firstName, lastName, usn, email, dept)
+POST /api/admin/reports/generate?type=participation&format=pdf
+
+✅ SUCCESS CRITERIA
+
+Page load <3s, API response <500ms
+Support 100 concurrent users
+80%+ test coverage
+HTTPS, CSRF, XSS protection
+Works on mobile/tablet/desktop
+WCAG AA accessible
+
+
+🔮 FUTURE ENHANCEMENTS
+
+Mobile apps (iOS/Android)
+QR code event check-in
+Auto-generate certificates after approval
+Gamification (badges, leaderboards)
+AI-powered submission review
+Multi-language support
+
+
+📦 DELIVERABLES
+
+ Source code (frontend + backend)
+ Database migrations
+ Docker configuration
+ API documentation (Swagger)
+ User guides (PDF/video)
+ Deployment on staging + production
+ Test coverage report
