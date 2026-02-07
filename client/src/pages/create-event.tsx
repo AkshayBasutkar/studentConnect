@@ -11,15 +11,6 @@ import {
   Loader2
 } from "lucide-react";
 
-interface UploadResult {
-  successful: Array<{
-    name: string;
-    uploadURL: string;
-    type: string;
-    size: number;
-  }>;
-}
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -105,8 +96,8 @@ export default function CreateEventPage() {
     });
   };
 
-  const handleUploadComplete = (result: UploadResult) => {
-    if (result.successful.length > 0) {
+  const handleUploadComplete = (result: any) => {
+    if (result.successful && result.successful.length > 0) {
       const file = result.successful[0];
       setUploadedBanner(file.uploadURL);
       toast({
@@ -235,11 +226,13 @@ export default function CreateEventPage() {
             <div className="space-y-2">
               <Label>Event Banner (Optional)</Label>
               <ObjectUploader
-                onUploadComplete={handleUploadComplete}
-                maxFiles={1}
-                allowedFileTypes={['image/*']}
-                note="Upload a banner image for the event (recommended size: 1200x600px)"
-              />
+                onGetUploadParameters={getUploadParameters}
+                onComplete={handleUploadComplete}
+                maxNumberOfFiles={1}
+                buttonClassName="w-full"
+              >
+                Upload Event Banner
+              </ObjectUploader>
               {uploadedBanner && (
                 <div className="mt-2">
                   <img 
@@ -249,6 +242,9 @@ export default function CreateEventPage() {
                   />
                 </div>
               )}
+              <p className="text-xs text-muted-foreground">
+                Upload a banner image for the event (recommended size: 1200x600px)
+              </p>
             </div>
 
             <div className="flex gap-3 justify-end pt-4">

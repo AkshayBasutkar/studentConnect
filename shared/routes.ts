@@ -3,6 +3,8 @@ import {
   insertUserSchema, 
   insertEventSchema, 
   insertParticipationSchema,
+  insertStudentSchema,
+  insertProctorSchema,
   users,
   events,
   participations,
