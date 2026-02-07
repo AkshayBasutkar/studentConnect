@@ -142,8 +142,8 @@ export class DatabaseStorage implements IStorage {
     return event;
   }
 
-  async createEvent(insertEvent: Omit<InsertEvent, never> & { postedBy: number }): Promise<Event> {
-    const [event] = await db.insert(events).values(insertEvent as any).returning();
+  async createEvent(insertEvent: InsertEvent & { postedBy: number }): Promise<Event> {
+    const [event] = await db.insert(events).values(insertEvent).returning();
     return event;
   }
 
@@ -157,9 +157,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Participations
-  async createParticipation(participation: Omit<InsertParticipation, never> & { studentId: number }, proofs: { fileName: string, fileUrl: string, fileType: string, fileSize: number }[]): Promise<Participation> {
+  async createParticipation(participation: InsertParticipation & { studentId: number }, proofs: { fileName: string, fileUrl: string, fileType: string, fileSize: number }[]): Promise<Participation> {
     return await db.transaction(async (tx) => {
-      const [newParticipation] = await tx.insert(participations).values(participation as any).returning();
+      const [newParticipation] = await tx.insert(participations).values(participation).returning();
       
       if (proofs.length > 0) {
         await tx.insert(participationProofs).values(

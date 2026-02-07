@@ -70,7 +70,7 @@ export function useCreateStudent() {
       return api.users.createStudent.responses[201].parse(await res.json());
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [api.users.students.path] });
+      queryClient.invalidateQueries({ queryKey: [api.users.all.path] });
       toast({
         title: "Student profile created",
         description: "The student profile has been successfully created.",

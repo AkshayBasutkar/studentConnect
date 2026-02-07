@@ -38,11 +38,11 @@ export default function LoginPage() {
     if (user) {
       // Check if user just logged in as admin
       if (user.role === 'admin') {
-        const hasSeenDialog = sessionStorage.getItem('adminWelcomeShown');
+        const hasSeenDialog = localStorage.getItem('adminWelcomeShown');
         if (!hasSeenDialog) {
           setAdminName(user.firstName);
           setShowAdminDialog(true);
-          sessionStorage.setItem('adminWelcomeShown', 'true');
+          localStorage.setItem('adminWelcomeShown', 'true');
         } else {
           setLocation("/");
         }
