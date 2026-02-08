@@ -159,8 +159,12 @@ export const participationProofsRelations = relations(participationProofs, ({ on
 
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 export const insertStudentSchema = createInsertSchema(students).omit({ id: true });
+export const insertStudentSelfSchema = insertStudentSchema.omit({ userId: true });
 export const insertProctorSchema = createInsertSchema(proctors).omit({ id: true });
-export const insertEventSchema = createInsertSchema(events).omit({ id: true, createdAt: true, postedBy: true });
+export const insertEventSchema = createInsertSchema(events, {
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+}).omit({ id: true, createdAt: true, postedBy: true });
 export const insertParticipationSchema = createInsertSchema(participations).omit({ 
   id: true, 
   submittedAt: true, 
@@ -185,8 +189,10 @@ export type Notification = typeof notifications.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertStudent = z.infer<typeof insertStudentSchema>;
+export type InsertStudentSelfInput = z.input<typeof insertStudentSelfSchema>;
 export type InsertProctor = z.infer<typeof insertProctorSchema>;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type InsertEventInput = z.input<typeof insertEventSchema>;
 export type InsertParticipation = z.infer<typeof insertParticipationSchema>;
 export type InsertProof = z.infer<typeof insertProofSchema>;
 

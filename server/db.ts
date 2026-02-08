@@ -5,7 +5,7 @@ import * as schema from "@shared/schema";
 const { Pool } = pg;
 
 const DATABASE_URL =
-  "postgresql://postgres:Baskar@localhost:5432/proctorStudent";
+  "postgresql://postgres:Basutkar@localhost:5432/proctorStudent";
 
 export const pool = new Pool({
   connectionString: DATABASE_URL

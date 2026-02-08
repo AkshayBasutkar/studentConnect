@@ -301,6 +301,27 @@ export async function registerRoutes(
     }
   });
 
+  // Student self-profile
+  app.post(api.students.me.create.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (user.role !== 'student') return res.sendStatus(403);
+
+    const existing = await storage.getStudent(user.id);
+    if (existing) return res.status(409).json({ message: "Student profile already exists" });
+
+    try {
+      const input = api.students.me.create.input.parse(req.body);
+      const student = await storage.createStudent({ ...input, userId: user.id });
+      res.status(201).json(student);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      throw err;
+    }
+  });
+
   app.get(api.notifications.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const user = req.user as any;

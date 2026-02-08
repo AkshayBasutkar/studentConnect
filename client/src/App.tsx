@@ -62,10 +62,6 @@ function Router() {
         <ProtectedRoute component={EventsPage} />
       </Route>
 
-      <Route path="/events/:id">
-        <ProtectedRoute component={EventDetailPage} />
-      </Route>
-
       {/* Proctor Routes */}
       <Route path="/events/create">
         <ProtectedRoute component={CreateEventPage} allowedRoles={['proctor', 'admin']} />
@@ -73,6 +69,10 @@ function Router() {
 
       <Route path="/events/:id/edit">
         <ProtectedRoute component={EditEventPage} allowedRoles={['proctor', 'admin']} />
+      </Route>
+
+      <Route path="/events/:id">
+        <ProtectedRoute component={EventDetailPage} />
       </Route>
 
       <Route path="/students">

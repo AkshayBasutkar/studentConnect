@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useEvents } from "@/hooks/use-events";
 import { useCreateParticipation } from "@/hooks/use-participations";
+import { useCreateMyStudentProfile } from "@/hooks/use-users";
 import { useLocation } from "wouter";
 import { useUpload } from "@/hooks/use-upload";
 import { ObjectUploader } from "@/components/ObjectUploader";
@@ -38,6 +39,7 @@ export default function CreateParticipationPage() {
   const { user } = useAuth();
   const { data: events } = useEvents();
   const createParticipation = useCreateParticipation();
+  const createMyStudentProfile = useCreateMyStudentProfile();
   const { getUploadParameters } = useUpload();
   const { toast } = useToast();
 
@@ -51,6 +53,13 @@ export default function CreateParticipationPage() {
   });
 
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [profileData, setProfileData] = useState({
+    usn: "",
+    department: "",
+    year: 1,
+    semester: 1,
+    batch: "",
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,6 +114,109 @@ export default function CreateParticipationPage() {
   const removeFile = (index: number) => {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
+
+  const handleProfileSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createMyStudentProfile.mutate({
+      usn: profileData.usn,
+      department: profileData.department,
+      year: Number(profileData.year),
+      semester: Number(profileData.semester),
+      batch: profileData.batch,
+    });
+  };
+
+  if (user?.role === "student" && !user?.student) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => setLocation("/participations")}>
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-display font-bold">Complete Your Profile</h1>
+            <p className="text-muted-foreground">Please complete your student profile before submitting participation.</p>
+          </div>
+        </div>
+
+        <Card className="border border-border/50 shadow-md">
+          <form onSubmit={handleProfileSubmit}>
+            <CardContent className="p-6 space-y-4">
+              <div className="space-y-2">
+                <Label>USN *</Label>
+                <Input
+                  placeholder="1CR18CS001"
+                  value={profileData.usn}
+                  onChange={(e) => setProfileData({ ...profileData, usn: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Department *</Label>
+                <Input
+                  placeholder="Computer Science"
+                  value={profileData.department}
+                  onChange={(e) => setProfileData({ ...profileData, department: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Year *</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="4"
+                    value={profileData.year}
+                    onChange={(e) => setProfileData({ ...profileData, year: parseInt(e.target.value) || 1 })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Semester *</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="8"
+                    value={profileData.semester}
+                    onChange={(e) => setProfileData({ ...profileData, semester: parseInt(e.target.value) || 1 })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Batch *</Label>
+                <Input
+                  placeholder="2022-2026"
+                  value={profileData.batch}
+                  onChange={(e) => setProfileData({ ...profileData, batch: e.target.value })}
+                  required
+                />
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-end gap-4 p-6 bg-muted/20 border-t">
+              <Button type="button" variant="outline" onClick={() => setLocation("/participations")}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={createMyStudentProfile.isPending}>
+                {createMyStudentProfile.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Profile"
+                )}
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">

@@ -4,6 +4,7 @@ import {
   insertEventSchema, 
   insertParticipationSchema,
   insertStudentSchema,
+  insertStudentSelfSchema,
   insertProctorSchema,
   users,
   events,
@@ -216,6 +217,19 @@ export const api = {
       responses: {
         201: z.custom<typeof proctors.$inferSelect>(),
         403: errorSchemas.unauthorized,
+      },
+    },
+  },
+  students: {
+    me: {
+      create: {
+        method: 'POST' as const,
+        path: '/api/students/me' as const,
+        input: insertStudentSelfSchema,
+        responses: {
+          201: z.custom<typeof students.$inferSelect>(),
+          403: errorSchemas.unauthorized,
+        },
       },
     },
   },

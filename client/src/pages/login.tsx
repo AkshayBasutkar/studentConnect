@@ -36,16 +36,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      // Check if user just logged in as admin
       if (user.role === 'admin') {
-        const hasSeenDialog = localStorage.getItem('adminWelcomeShown');
-        if (!hasSeenDialog) {
-          setAdminName(user.firstName);
-          setShowAdminDialog(true);
-          localStorage.setItem('adminWelcomeShown', 'true');
-        } else {
-          setLocation("/");
-        }
+        setAdminName(user.firstName);
+        setShowAdminDialog(true);
       } else {
         setLocation("/");
       }
@@ -57,10 +50,6 @@ export default function LoginPage() {
     setLocation("/");
   };
 
-  if (user && !showAdminDialog) {
-    return null;
-  }
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -68,6 +57,19 @@ export default function LoginPage() {
       password: "",
     },
   });
+  if (user && showAdminDialog) {
+    return (
+      <AdminWelcomeDialog 
+        isOpen={showAdminDialog} 
+        onClose={handleAdminDialogClose}
+        userName={adminName}
+      />
+    );
+  }
+
+  if (user && !showAdminDialog) {
+    return null;
+  }
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     login(values);
@@ -75,11 +77,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
-      <AdminWelcomeDialog 
-        isOpen={showAdminDialog} 
-        onClose={handleAdminDialogClose}
-        userName={adminName}
-      />
       {/* Left Side - Visual */}
       <div className="hidden md:flex flex-col justify-between bg-primary p-10 text-primary-foreground relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-indigo-900/90 mix-blend-multiply" />

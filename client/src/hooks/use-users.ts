@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@shared/routes";
 import { useToast } from "@/hooks/use-toast";
-import type { InsertUser, InsertStudent, InsertProctor } from "@shared/schema";
+import type { InsertUser, InsertStudent, InsertProctor, InsertStudentSelfInput } from "@shared/schema";
 
 export function useUsers() {
   return useQuery({
@@ -115,6 +115,41 @@ export function useCreateProctor() {
       toast({
         variant: "destructive",
         title: "Failed to create proctor profile",
+        description: error.message,
+      });
+    },
+  });
+}
+
+export function useCreateMyStudentProfile() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (studentData: InsertStudentSelfInput) => {
+      const res = await fetch(api.students.me.create.path, {
+        method: api.students.me.create.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(studentData),
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || "Failed to create student profile");
+      }
+      return api.students.me.create.responses[201].parse(await res.json());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.auth.me.path] });
+      toast({
+        title: "Profile saved",
+        description: "Your student profile is ready. You can submit participations now.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Failed to save profile",
         description: error.message,
       });
     },

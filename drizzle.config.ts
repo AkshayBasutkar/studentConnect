@@ -1,7 +1,7 @@
 import { defineConfig } from "drizzle-kit";
 
 const DATABASE_URL =
-  "postgresql://postgres:Bukar@localhost:5432/proctorStudent";
+  "postgresql://postgres:Basutkar@localhost:5432/proctorStudent";
 
 export default defineConfig({
   out: "./migrations",

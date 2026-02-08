@@ -59,6 +59,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     } else if (user?.role === "admin") {
       return [
         ...baseItems,
+        { name: "Events", href: "/events", icon: Calendar },
+        { name: "Post Event", href: "/events/create", icon: PlusCircle },
         { name: "Manage Users", href: "/admin/users", icon: Users },
       ];
     }

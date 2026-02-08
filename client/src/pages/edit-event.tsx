@@ -82,7 +82,19 @@ export default function EditEventPage() {
         body: JSON.stringify(eventData),
         credentials: "include",
       });
-      if (!res.ok) throw new Error("Failed to update event");
+      if (!res.ok) {
+        let message = "Failed to update event";
+        const text = await res.text();
+        if (text) {
+          try {
+            const parsed = JSON.parse(text);
+            if (parsed?.message) message = parsed.message;
+          } catch {
+            message = text;
+          }
+        }
+        throw new Error(message);
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -132,8 +144,8 @@ export default function EditEventPage() {
       title: formData.title,
       description: formData.description,
       category: formData.category,
-      startDate: start,
-      endDate: end,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
       venue: formData.venue,
       bannerUrl: uploadedBanner || undefined,
       isPinned: formData.isPinned,

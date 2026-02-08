@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, buildUrl } from "@shared/routes";
 import { useToast } from "@/hooks/use-toast";
-import type { InsertEvent } from "@shared/schema";
+import type { InsertEventInput } from "@shared/schema";
 
 export function useEvents(filters?: { category?: string; query?: string }) {
   const queryKey = [api.events.list.path, filters];
@@ -43,14 +43,26 @@ export function useCreateEvent() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (eventData: InsertEvent) => {
+    mutationFn: async (eventData: InsertEventInput) => {
       const res = await fetch(api.events.create.path, {
         method: api.events.create.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(eventData),
         credentials: "include",
       });
-      if (!res.ok) throw new Error("Failed to create event");
+      if (!res.ok) {
+        let message = "Failed to create event";
+        const text = await res.text();
+        if (text) {
+          try {
+            const parsed = JSON.parse(text);
+            if (parsed?.message) message = parsed.message;
+          } catch {
+            message = text;
+          }
+        }
+        throw new Error(message);
+      }
       return api.events.create.responses[201].parse(await res.json());
     },
     onSuccess: () => {
