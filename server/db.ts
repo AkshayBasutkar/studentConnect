@@ -1,21 +1,18 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import * as schema from "@shared/schema";
-import process from "process";
 
+// 1. Use the environment variable OR the local fallback
+const connectionString = process.env.DATABASE_URL || "postgresql://postgres:Basutkar@localhost:5432/proctorStudent";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
+if (!connectionString) {
+  throw new Error("DATABASE_URL is missing and no fallback provided");
 }
-// const DATABASE_URL="postgresql://postgres:Basutkar@localhost:5432/proctorStudent"
 
 const { Pool } = pg;
 
-// Check if the environment variable exists to prevent runtime errors
-
-
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
 });
 
 export const db = drizzle(pool, { schema });
