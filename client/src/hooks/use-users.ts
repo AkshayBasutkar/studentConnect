@@ -155,3 +155,73 @@ export function useCreateMyStudentProfile() {
     },
   });
 }
+
+export function useUpdateUser() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, updates }: { id: number; updates: Partial<InsertUser> & { password?: string | undefined | null } }) => {
+      const url = api.users.update.path.replace(":id", String(id));
+      const res = await fetch(url, {
+        method: api.users.update.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || "Failed to update user");
+      }
+      return api.users.update.responses[200].parse(await res.json());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.users.all.path] });
+      toast({
+        title: "User updated",
+        description: "User details have been saved.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Failed to update user",
+        description: error.message,
+      });
+    },
+  });
+}
+
+export function useDeactivateUser() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const url = api.users.delete.path.replace(":id", String(id));
+      const res = await fetch(url, {
+        method: api.users.delete.method,
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || "Failed to deactivate user");
+      }
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.users.all.path] });
+      toast({
+        title: "User deactivated",
+        description: "The user has been set to inactive.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Failed to deactivate user",
+        description: error.message,
+      });
+    },
+  });
+}

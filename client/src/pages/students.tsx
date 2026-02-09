@@ -7,7 +7,8 @@ import {
   Mail, 
   Phone,
   GraduationCap,
-  Filter
+  Filter,
+  ExternalLink
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,6 +28,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 export default function StudentsPage() {
   const [search, setSearch] = useState("");
@@ -158,6 +161,15 @@ function StudentCard({ student }: { student: StudentWithUser }) {
               <span>{student.user.phone}</span>
             </div>
           )}
+        </div>
+
+        <div className="pt-3">
+          <Link href={`/students/${student.id}`}>
+            <Button variant="outline" size="sm" className="w-full">
+              View Submissions
+              <ExternalLink className="w-3.5 h-3.5 ml-2" />
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>

@@ -219,6 +219,34 @@ export const api = {
         403: errorSchemas.unauthorized,
       },
     },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/admin/users/:id' as const,
+      input: z.object({
+        username: z.string().min(3).optional(),
+        password: z.string().min(6).optional(),
+        role: z.enum(["student", "proctor", "admin"]).optional(),
+        firstName: z.string().min(1).optional(),
+        lastName: z.string().min(1).optional(),
+        email: z.string().email().optional(),
+        phone: z.string().optional().nullable(),
+        isActive: z.boolean().optional(),
+      }),
+      responses: {
+        200: z.custom<typeof users.$inferSelect>(),
+        403: errorSchemas.unauthorized,
+        404: errorSchemas.notFound,
+      },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/admin/users/:id' as const,
+      responses: {
+        204: z.void(),
+        403: errorSchemas.unauthorized,
+        404: errorSchemas.notFound,
+      },
+    },
   },
   students: {
     me: {

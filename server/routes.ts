@@ -18,9 +18,24 @@ export async function registerRoutes(
   // Setup Object Storage
   registerObjectStorageRoutes(app);
 
+  async function buildUserResponse(user: any) {
+    // Enrich with profile data
+    let profileData: any = {};
+    if (user.role === "student") {
+      const student = await storage.getStudent(user.id);
+      profileData = { student };
+    } else if (user.role === "proctor") {
+      const proctor = await storage.getProctor(user.id);
+      profileData = { proctor };
+    }
+    return { ...user, ...profileData };
+  }
+
   // Authentication Routes
-  app.post(api.auth.login.path, passport.authenticate("local"), (req, res) => {
-    res.json(req.user);
+  app.post(api.auth.login.path, passport.authenticate("local"), async (req, res) => {
+    const user = req.user as any;
+    const response = await buildUserResponse(user);
+    res.json(response);
   });
 
   app.post(api.auth.logout.path, (req, res, next) => {
@@ -35,17 +50,8 @@ export async function registerRoutes(
       return res.status(401).json({ message: "Unauthorized" });
     }
     const user = req.user as any;
-    // Enrich with profile data
-    let profileData: any = {};
-    if (user.role === 'student') {
-      const student = await storage.getStudent(user.id);
-      profileData = { student: student };
-    } else if (user.role === 'proctor') {
-      const proctor = await storage.getProctor(user.id);
-      profileData = { proctor: proctor };
-    }
-    
-    res.json({ ...user, ...profileData });
+    const response = await buildUserResponse(user);
+    res.json(response);
   });
 
   // Events Routes
@@ -299,6 +305,41 @@ export async function registerRoutes(
       }
       throw err;
     }
+  });
+
+  app.patch(api.users.update.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (user.role !== 'admin') return res.sendStatus(403);
+
+    try {
+      const input = api.users.update.input.parse(req.body);
+      const updateData: any = { ...input };
+      if (input.password) {
+        updateData.password = await hashPassword(input.password);
+      } else {
+        delete updateData.password;
+      }
+
+      const updated = await storage.updateUser(Number(req.params.id), updateData);
+      if (!updated) return res.status(404).json({ message: "User not found" });
+      res.json(updated);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      throw err;
+    }
+  });
+
+  app.delete(api.users.delete.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const user = req.user as any;
+    if (user.role !== 'admin') return res.sendStatus(403);
+
+    const ok = await storage.deactivateUser(Number(req.params.id));
+    if (!ok) return res.status(404).json({ message: "User not found" });
+    res.sendStatus(204);
   });
 
   // Student self-profile

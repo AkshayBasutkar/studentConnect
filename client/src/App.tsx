@@ -15,8 +15,10 @@ import EventDetailPage from "@/pages/event-detail";
 import EditEventPage from "@/pages/edit-event";
 import CreateEventPage from "@/pages/create-event";
 import StudentsPage from "@/pages/students";
+import StudentDetailPage from "@/pages/student-detail";
 import ManageUsersPage from "@/pages/manage-users";
 import CreateParticipationPage from "@/pages/create-participation";
+import ParticipationsPage from "@/pages/participations";
 import ReviewParticipationsPage from "@/pages/review-participations";
 import NotFound from "@/pages/not-found";
 
@@ -78,6 +80,9 @@ function Router() {
       <Route path="/students">
         <ProtectedRoute component={StudentsPage} allowedRoles={['proctor', 'admin']} />
       </Route>
+      <Route path="/students/:id">
+        <ProtectedRoute component={StudentDetailPage} allowedRoles={['proctor', 'admin']} />
+      </Route>
 
       {/* Admin Routes */}
       <Route path="/admin/users">
@@ -86,8 +91,7 @@ function Router() {
 
       {/* Student Routes */}
       <Route path="/participations">
-        {/* Reuse EventsPage or ReviewPage logic for listing own participations for MVP simplicity */}
-        <ProtectedRoute component={CreateParticipationPage} allowedRoles={['student']} />
+        <ProtectedRoute component={ParticipationsPage} allowedRoles={['student']} />
       </Route>
       
       {/* Since we pointed participations to create page, let's fix pathing properly: */}

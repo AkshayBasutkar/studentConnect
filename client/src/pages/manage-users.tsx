@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useUsers } from "@/hooks/use-users";
+import { useUsers, useUpdateUser, useDeactivateUser } from "@/hooks/use-users";
 import type { User } from "@shared/schema";
 import { 
   Search, 
@@ -8,7 +8,9 @@ import {
   Phone,
   Shield,
   Filter,
-  UserCircle
+  UserCircle,
+  Edit,
+  UserX
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -37,11 +39,35 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CreateUserDialog } from "@/components/create-user-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function ManageUsersPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const { data: users, isLoading } = useUsers();
+  const updateUser = useUpdateUser();
+  const deactivateUser = useDeactivateUser();
 
   const filteredUsers = users?.filter(user => {
     const matchesSearch = search === "" || 
@@ -125,6 +151,7 @@ export default function ManageUsersPage() {
                     <TableHead>Phone</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -177,6 +204,44 @@ export default function ManageUsersPage() {
                           {user.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <EditUserDialog
+                            user={user}
+                            onSave={(updates) => updateUser.mutate({ id: user.id, updates })}
+                            isSaving={updateUser.isPending}
+                          />
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <UserX className="w-4 h-4 mr-1" />
+                                Deactivate
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Deactivate user?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will mark the user as inactive and prevent them from logging in.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deactivateUser.mutate(user.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Deactivate
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -212,5 +277,152 @@ function RoleBadge({ role }: { role: string }) {
       <Icon className="w-3 h-3" />
       {role.charAt(0).toUpperCase() + role.slice(1)}
     </Badge>
+  );
+}
+
+function EditUserDialog({
+  user,
+  onSave,
+  isSaving,
+}: {
+  user: User;
+  onSave: (updates: Partial<User> & { password?: string }) => void;
+  isSaving: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({
+    firstName: user.firstName,
+    lastName: user.lastName,
+    username: user.username,
+    email: user.email,
+    phone: user.phone || "",
+    role: user.role,
+    isActive: user.isActive,
+    password: "",
+  });
+
+  const handleSave = () => {
+    const updates: any = {
+      firstName: form.firstName,
+      lastName: form.lastName,
+      username: form.username,
+      email: form.email,
+      phone: form.phone || null,
+      role: form.role,
+      isActive: form.isActive,
+    };
+    if (form.password.trim()) {
+      updates.password = form.password.trim();
+    }
+    onSave(updates);
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline">
+          <Edit className="w-4 h-4 mr-1" />
+          Edit
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[520px]">
+        <DialogHeader>
+          <DialogTitle>Edit User</DialogTitle>
+          <DialogDescription>
+            Update user details. Leave password blank to keep it unchanged.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>First Name *</Label>
+            <Input
+              value={form.firstName}
+              onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Last Name *</Label>
+            <Input
+              value={form.lastName}
+              onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Username *</Label>
+          <Input
+            value={form.username}
+            onChange={(e) => setForm({ ...form, username: e.target.value })}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Email *</Label>
+          <Input
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Phone</Label>
+          <Input
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Role *</Label>
+          <Select
+            value={form.role}
+            onValueChange={(value) => setForm({ ...form, role: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="student">Student</SelectItem>
+              <SelectItem value="proctor">Proctor</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>New Password</Label>
+          <Input
+            type="password"
+            placeholder="Leave blank to keep current password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between rounded-lg border p-3">
+          <div>
+            <Label>Status</Label>
+            <p className="text-xs text-muted-foreground">Inactive users cannot log in.</p>
+          </div>
+          <Switch
+            checked={form.isActive}
+            onCheckedChange={(checked) => setForm({ ...form, isActive: checked })}
+          />
+        </div>
+
+        <div className="flex justify-end gap-3 pt-2">
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            Save Changes
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
