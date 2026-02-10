@@ -13,7 +13,7 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   // Setup Auth
-  setupAuth();
+  setupAuth(app);
 
   // Setup Object Storage
   registerObjectStorageRoutes(app);

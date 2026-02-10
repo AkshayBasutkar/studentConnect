@@ -1,12 +1,7 @@
-import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
-import session from "express-session";
-import connectPgSimple from "connect-pg-simple";
-import passport from "passport";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
-import { ensureSessionTable, pool } from "./db";
 
 const app = express();
 const httpServer = createServer(app);
@@ -65,40 +60,6 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  await ensureSessionTable();
-
-  if (process.env.NODE_ENV === "production") {
-    app.set("trust proxy", 1);
-  }
-
-  const PgStore = connectPgSimple(session);
-  app.use(
-    session({
-      store: new PgStore({
-        pool,
-        tableName: "session",
-        createTableIfMissing: false,
-      }),
-      secret: process.env.SESSION_SECRET,
-      resave: false,
-      saveUninitialized: false,
-      cookie: { secure: process.env.NODE_ENV === "production" },
-    }),
-  );
-
-  app.use(passport.initialize());
-  app.use(passport.session());
-
-  app.get("/health", async (_req, res) => {
-    try {
-      await pool.query("SELECT 1");
-      res.status(200).json({ ok: true });
-    } catch (err) {
-      console.error("Health check failed:", err);
-      res.status(500).json({ ok: false });
-    }
-  });
-
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
