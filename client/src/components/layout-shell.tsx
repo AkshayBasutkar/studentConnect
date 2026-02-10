@@ -80,7 +80,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
         <div className="h-16 flex items-center px-6 border-b border-border/50">
           <div className="flex items-center gap-2 font-display font-bold text-xl text-primary">
             <Award className="w-6 h-6" />
-            <span>CampusPulse</span>
+            <span>StudentConnect</span>
           </div>
         </div>
         
@@ -147,7 +147,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
         <header className="md:hidden h-16 bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-40 px-4 flex items-center justify-between">
           <div className="flex items-center gap-2 font-display font-bold text-lg text-primary">
             <Award className="w-5 h-5" />
-            <span>CampusPulse</span>
+            <span>StudentConnect</span>
           </div>
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
@@ -159,7 +159,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
               <div className="h-16 flex items-center px-6 border-b border-border">
                 <div className="flex items-center gap-2 font-display font-bold text-xl text-primary">
                   <Award className="w-6 h-6" />
-                  <span>CampusPulse</span>
+                  <span>StudentConnect</span>
                 </div>
               </div>
               <div className="p-4 space-y-1">

@@ -93,7 +93,7 @@ export default function LoginPage() {
         <div className="relative z-10">
           <div className="flex items-center gap-3 text-2xl font-display font-bold">
             <Award className="w-8 h-8" />
-            CampusPulse
+            StudentConnect
           </div>
         </div>
         
@@ -116,9 +116,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="relative z-10 text-sm opacity-60">
-          © 2024 CampusPulse System. All rights reserved.
-        </div>
+        
       </div>
 
       {/* Right Side - Form */}
